@@ -3,9 +3,10 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
-//connect with mongodb
-
+const cors = require("cors");
 require("dotenv").config();
+
+//connect with mongodb
 // console.log(process.env);
 // console.log(process.env.MONGODB_URl);
 
@@ -13,8 +14,15 @@ require("dotenv").config();
 const uri =
   "mongodb+srv://sohelshahid09:5QYJoCjMgHeicc1T@library-management-system.88n1mrb.mongodb.net/?retryWrites=true&w=majority&appName=library-management-system";
 */
+
+//middleware
+app.use(express.json());
+app.use(cors());
+//cors:cross origin resource sharing
+
 const uri = process.env.MONGODB_URl;
 console.log(uri);
+
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -28,11 +36,63 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    //create db & collection
 
+    //create db & collection
     const db = client.db("library-management-system");
-    console.log(db);
+    // console.log(db);
     const booksCollection = db.collection("books");
+
+    //create a book with POST request
+    app.post("/books", async (req, res) => {
+      const bookData = req.body;
+      try {
+        // console.log(bookData);
+        const book = await booksCollection.insertOne(bookData);
+        // res.status(201).json(book);
+        res.status(201).json({ message: "book inserted successfully", book });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    //get all books(GET)
+    app.get("/books", async (req, res) => {
+      //filtering info
+      const {
+        page,
+        limit,
+        genre,
+        minYear,
+        maxYear,
+        minPrice,
+        maxPrice,
+        sortBy,
+        order,
+        search,
+      } = req.query;
+      try {
+        //pagination
+        const currentPage = Math.max(1, parseInt(page) || 1);
+        const perPage = parseInt(limit) || 10;
+        const skip = (currentPage - 1) * perPage;
+
+        const filter = {};
+        if (search) {
+          filter.$or = [
+            {
+              title: { $regex: search, $options: "i" },
+              description: { $regex: search, $options: "i" },
+            },
+          ];
+        }
+
+        // const books = await booksCollection.find().toArray();
+        const books = await booksCollection.find(filter).toArray();
+        res.status(201).json({ books });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
