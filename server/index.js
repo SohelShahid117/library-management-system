@@ -2,7 +2,12 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const {
+  MongoClient,
+  ServerApiVersion,
+  OrderedBulkOperation,
+  ObjectId,
+} = require("mongodb");
 const cors = require("cors");
 require("dotenv").config();
 
@@ -21,7 +26,7 @@ app.use(cors());
 //cors:cross origin resource sharing
 
 const uri = process.env.MONGODB_URl;
-console.log(uri);
+// console.log(uri);
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -58,19 +63,21 @@ async function run() {
     //get all books(GET)
     app.get("/books", async (req, res) => {
       //filtering info
-      const {
-        page,
-        limit,
-        genre,
-        minYear,
-        maxYear,
-        minPrice,
-        maxPrice,
-        sortBy,
-        order,
-        search,
-      } = req.query;
       try {
+        const {
+          page,
+          limit,
+          genre,
+          minYear,
+          maxYear,
+          price,
+          minPrice,
+          maxPrice,
+          sortBy,
+          order,
+          search,
+          author,
+        } = req.query;
         //pagination
         const currentPage = Math.max(1, parseInt(page) || 1);
         const perPage = parseInt(limit) || 10;
@@ -79,18 +86,90 @@ async function run() {
         const filter = {};
         if (search) {
           filter.$or = [
-            {
-              title: { $regex: search, $options: "i" },
-              description: { $regex: search, $options: "i" },
-            },
+            { title: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } },
           ];
         }
+        if (genre) {
+          filter.genre = genre;
+        }
+        if (minYear || maxYear) {
+          filter.publishedYear = {
+            ...(minYear && { $gte: parseInt(minYear) }),
+            ...(maxYear && { $lte: parseInt(maxYear) }),
+          };
+        }
+        if (author) {
+          filter.author = author;
+        }
+        if (minPrice || maxPrice) {
+          filter.price = {
+            ...(minPrice && { $gte: parseFloat(minPrice) }),
+            ...(maxPrice && { $lte: parseFloat(maxPrice) }),
+          };
+        }
 
-        // const books = await booksCollection.find().toArray();
-        const books = await booksCollection.find(filter).toArray();
-        res.status(201).json({ books });
+        const sortOptions = { [sortBy || "title"]: order == "desc" ? -1 : 1 };
+
+        const [books, totalBooks] = await Promise.all([
+          booksCollection
+            .find(filter)
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(perPage)
+            .toArray(),
+          booksCollection.countDocuments(filter),
+        ]);
+        res.json({
+          books,
+          totalBooks,
+          currentPage,
+          totalPages: Math.ceil(totalBooks / perPage),
+        });
       } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: "wrong" });
+        // res.status(500).json({ error: error.message });
+      }
+      // const books = await booksCollection.find().toArray();
+      /*
+        const books = await booksCollection
+          .find(filter)
+          .sort(sortOptions)
+          .skip(skip)
+          .limit(perPage)
+          .toArray();
+          */
+    });
+
+    //get a book by id
+    app.get("/books/:id", async (req, res) => {
+      const bookId = req.params.id;
+      try {
+        const book = await booksCollection.findOne({
+          _id: new ObjectId(bookId),
+        });
+        if (!book) {
+          return res.status(404).json({ message: "book not found" });
+        }
+        res.json(book);
+      } catch (error) {
+        res.status(500).json({ error: "wrong" });
+      }
+    });
+
+    //update a book(PUT)
+    app.put("/books/:id", async (req, res) => {
+      const bookId = req.params.id;
+      try {
+        const updateBook = await booksCollection.updateOne(
+          {
+            _id: new ObjectId(bookId),
+          },
+          { $set: req.body }
+        );
+        res.json(updateBook);
+      } catch (error) {
+        res.status(500).json({ error: "wrong" });
       }
     });
 
