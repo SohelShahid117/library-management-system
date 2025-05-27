@@ -174,9 +174,13 @@ async function run() {
     });
 
     //delete  book(delete)
-    app.put("/books/:id", async (req, res) => {
+    app.delete("/books/:id", async (req, res) => {
       try {
-      } catch (error) {}
+        await booksCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        res.json({ message: "deleted successfully" });
+      } catch (error) {
+        res.status(500).json({ error: "wrong" });
+      }
     });
 
     // Send a ping to confirm a successful connection
