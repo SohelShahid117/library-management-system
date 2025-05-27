@@ -159,18 +159,24 @@ async function run() {
 
     //update a book(PUT)
     app.put("/books/:id", async (req, res) => {
-      const bookId = req.params.id;
+      // const bookId = req.params.id;
       try {
-        const updateBook = await booksCollection.updateOne(
+        const updatedBook = await booksCollection.updateOne(
           {
-            _id: new ObjectId(bookId),
+            _id: new ObjectId(req.params.id),
           },
           { $set: req.body }
         );
-        res.json(updateBook);
+        res.json(updatedBook);
       } catch (error) {
         res.status(500).json({ error: "wrong" });
       }
+    });
+
+    //delete  book(delete)
+    app.put("/books/:id", async (req, res) => {
+      try {
+      } catch (error) {}
     });
 
     // Send a ping to confirm a successful connection
