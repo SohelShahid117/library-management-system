@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import axios from "axios";
 
 const BookContext = createContext();
@@ -11,7 +17,7 @@ export const BookProvider = ({ children }) => {
 
   const [filters, setFiters] = useState({
     page: 1,
-    limit: 8,
+    limit: 10,
     genre: "",
     minYear: "",
     maxYear: "",
@@ -23,26 +29,85 @@ export const BookProvider = ({ children }) => {
     search: "",
     author: "",
   });
-  const [pagination, setPagination] = useState({});
+  const [pagination, setPagination] = useState({
+    totalBooks: 0,
+    currentPage: 1,
+    totalPages: 1,
+  });
 
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get("http://localhost:3000/books");
+
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== "") {
+          params.append(key, value);
+        }
+      });
+
+      const response = await axios.get(`http://localhost:3000/books?${params}`);
       setBooks(response.data.books);
+      setPagination({
+        currentPage: response.data.currentPage,
+        totalBooks: response.data.totalBooks,
+        totalPages: response.data.totalPages,
+      });
       //   console.log(response.data);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [filters]);
+
+  const clearCurrentBooks = useCallback(() => {
+    setBooks(null);
+  }, []);
+  const updateFilters = useCallback(async (newFilters) => {
+    setFiters((prev) => ({
+      ...prev,
+      ...newFilters,
+      page: newFilters.hasOwnProperty("page") ? newFilters.page : 1,
+    }));
+  }, []);
+
+  const fetchBookDetails = useCallback(async (bookId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(
+        `http://localhost:3000/books?search=${bookId}`
+      );
+      setCurrentBook(response.data);
+      return response.data;
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchBooks();
-  }, []);
+  }, [filters]);
   console.log(books);
 
-  const value = { books, currentBook, loading };
+  const value = {
+    books,
+    currentBook,
+    loading,
+    errors,
+    filters,
+    pagination,
+    fetchBooks,
+    clearCurrentBooks,
+    updateFilters,
+    fetchBookDetails,
+  };
 
   return <BookContext.Provider value={value}>{children}</BookContext.Provider>;
 };

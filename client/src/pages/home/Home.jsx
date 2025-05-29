@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useBooks } from "../../context/BookContext";
+import Hero from "../../components/Hero";
 
 const Home = () => {
   const { books, currentBook, loading, error } = useBooks();
@@ -17,10 +18,12 @@ const Home = () => {
   */
   return (
     <div>
-      {books.map((book) => (
+      {/* {books.map((book) => (
         <div key={book._id}>{book.title}</div>
-      ))}
+      ))} */}
+
       {/* Homee */}
+      <Hero></Hero>
     </div>
   );
 };
