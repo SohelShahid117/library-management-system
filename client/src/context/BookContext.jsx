@@ -71,7 +71,7 @@ export const BookProvider = ({ children }) => {
     setFilters((prev) => ({
       ...prev,
       ...newFilters,
-      page: newFilters.hasOwnProperty("page") ? newFilters.page : 1,
+      // page: newFilters.hasOwnProperty("page") ? newFilters.page : 1,
     }));
   }, []);
 
@@ -79,7 +79,12 @@ export const BookProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${baseUrl}/books?search=${bookId}`);
+      // const response = await axios.get(`${baseUrl}/books?search=${bookId}`);
+      // console.log(response.data);
+      // setCurrentBook(response.data);
+      // console.log(currentBook);
+
+      const response = await axios.get(`${baseUrl}/books/${bookId}`);
       setCurrentBook(response.data);
       return response.data;
     } catch (error) {

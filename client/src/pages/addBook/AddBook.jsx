@@ -1,53 +1,32 @@
-import React, { useEffect } from "react";
-import { useParams } from "react-router";
-import { useBooks } from "../../context/BookContext";
 import axios from "axios";
-import { baseUrl } from "../../../utils/baseUrl";
+import React from "react";
 import { useForm } from "react-hook-form";
+import { baseUrl } from "../../../utils/baseUrl";
 
-const EditBook = () => {
-  const { id } = useParams();
-  const { currentBook, fetchBookDetails } = useBooks();
-  const { register, handleSubmit, setValue } = useForm();
-  //   console.log(currentBook);
+const AddBook = () => {
+  const { register, handleSubmit, reset } = useForm();
 
-  useEffect(() => {
-    fetchBookDetails(id);
-  }, [id, fetchBookDetails]);
-
-  useEffect(() => {
-    if (currentBook) {
-      setValue("title", currentBook.title);
-      setValue("author", currentBook.author);
-      setValue("publishedYear", currentBook.publishedYear);
-      setValue("genre", currentBook.genre);
-      setValue("price", currentBook.price);
-      setValue("description", currentBook.description);
-      setValue("imageUrl", currentBook.imageUrl);
-    }
-  }, [currentBook, setValue]);
-
-  const onSubmit = async (data) => {
+  const onSubmit = (data) => {
     const price = parseFloat(data.price);
     if (isNaN(price)) {
       alert("Price must be a valid number");
       return;
     }
     data.price = price;
-    try {
-      //   const response = await axios
-      await axios.put(`${baseUrl}/books/${id}`, data).then(() => {
-        alert("Book updated successfully");
-        // console.log(response);
+    axios
+      .post(`${baseUrl}/books`, data)
+      .then(() => {
+        alert("Book added successfully");
+        reset();
+      })
+      .catch((err) => {
+        alert(`Error adding book: ${err.message}`);
       });
-    } catch (error) {
-      alert(`Error updating book: ${error.message}`);
-    }
   };
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">Edit Book</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <h1 className="text-3xl font-bold mb-4">Add Book</h1>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-5xl">
         <div>
           <label className="block text-gray-700">Title</label>
           <input
@@ -108,11 +87,11 @@ const EditBook = () => {
           type="submit"
           className="bg-amber-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-amber-600 transition-colors"
         >
-          Save Changes
+          Add Book
         </button>
       </form>
     </div>
   );
 };
 
-export default EditBook;
+export default AddBook;
