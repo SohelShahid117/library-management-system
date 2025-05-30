@@ -5,6 +5,7 @@ import axios from "axios";
 import CategoryNav from "./CategoryNav";
 import SortBooks from "./SortBooks";
 import Pagination from "./Pagination";
+import { baseUrl } from "../../../utils/baseUrl";
 
 const Shop = () => {
   const {
@@ -19,11 +20,14 @@ const Shop = () => {
 
   const handleDeleteBook = async (id) => {
     try {
+      console.log("deleted book", id);
       await axios.delete(`${baseUrl}/books/${id}`);
-      alert("Book deleted successfully");
+      alert("deleted book successfully");
+      // console.log(baseUrl);
       fetchBooks();
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.log("Error deleting book" + error);
+      alert("Error deleting book");
     }
   };
 

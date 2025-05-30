@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import axios from "axios";
+import { baseUrl } from "../../utils/baseUrl";
 
 const BookContext = createContext();
 
@@ -47,7 +48,7 @@ export const BookProvider = ({ children }) => {
         }
       });
 
-      const response = await axios.get(`http://localhost:3000/books?${params}`);
+      const response = await axios.get(`${baseUrl}/books?${params}`);
       setBooks(response.data.books);
       setPagination({
         currentPage: response.data.currentPage,
@@ -78,9 +79,7 @@ export const BookProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(
-        `http://localhost:3000/books?search=${bookId}`
-      );
+      const response = await axios.get(`${baseUrl}/books?search=${bookId}`);
       setCurrentBook(response.data);
       return response.data;
     } catch (error) {
