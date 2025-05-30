@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useBooks } from "../../context/BookContext";
 import Hero from "../../components/Hero";
+import Shop from "./../shop/Shop";
 
 const Home = () => {
   const { books, currentBook, loading, error } = useBooks();
@@ -23,7 +24,8 @@ const Home = () => {
       ))} */}
 
       {/* Homee */}
-      <Hero></Hero>
+      <Hero />
+      <Shop />
     </div>
   );
 };
