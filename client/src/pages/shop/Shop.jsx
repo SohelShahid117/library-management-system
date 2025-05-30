@@ -3,6 +3,8 @@ import BookGrid from "./BookGrid";
 import { useBooks } from "../../context/BookContext";
 import axios from "axios";
 import CategoryNav from "./CategoryNav";
+import SortBooks from "./SortBooks";
+import Pagination from "./Pagination";
 
 const Shop = () => {
   const {
@@ -31,6 +33,18 @@ const Shop = () => {
       page: 1,
     });
   };
+  const handleSortChange = (sortConfig) => {
+    updateFilters({
+      sortBy: sortConfig.sortBy,
+      order: sortConfig.order,
+      page: 1,
+    });
+  };
+
+  const handlePageChange = (newPage) => {
+    updateFilters({ page: newPage });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const categories = [
     "All Collections",
@@ -49,6 +63,16 @@ const Shop = () => {
           activeCategory={filters.genre || "All Collections"}
           onCategoryChange={handleCategoryChange}
         />
+        {/* Add sorting controls */}
+        <div className="py-4 flex justify-end  px-4">
+          <SortBooks
+            currentSort={{
+              sortBy: filters.sortBy,
+              order: filters.order,
+            }}
+            onSortChange={handleSortChange}
+          />
+        </div>
       </div>
 
       {/*result summary*/}
@@ -76,6 +100,15 @@ const Shop = () => {
           onDeleteBook={handleDeleteBook}
         />
       </div>
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChange}
+        />
+      )}
     </div>
   );
 };

@@ -15,7 +15,7 @@ export const BookProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setError] = useState(null);
 
-  const [filters, setFiters] = useState({
+  const [filters, setFilters] = useState({
     page: 1,
     limit: 10,
     genre: "",
@@ -67,7 +67,7 @@ export const BookProvider = ({ children }) => {
     setBooks(null);
   }, []);
   const updateFilters = useCallback(async (newFilters) => {
-    setFiters((prev) => ({
+    setFilters((prev) => ({
       ...prev,
       ...newFilters,
       page: newFilters.hasOwnProperty("page") ? newFilters.page : 1,
