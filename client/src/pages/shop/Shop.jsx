@@ -2,6 +2,7 @@ import React from "react";
 import BookGrid from "./BookGrid";
 import { useBooks } from "../../context/BookContext";
 import axios from "axios";
+import CategoryNav from "./CategoryNav";
 
 const Shop = () => {
   const {
@@ -23,8 +24,33 @@ const Shop = () => {
       console.error(err);
     }
   };
+
+  const handleCategoryChange = (category) => {
+    updateFilters({
+      genre: category === "All Collections" ? "" : category,
+      page: 1,
+    });
+  };
+
+  const categories = [
+    "All Collections",
+    "Fiction",
+    "Adventure",
+    "Romance",
+    "Dystopian",
+    "Historical",
+    "Non-Fiction",
+  ];
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto px-4 py-12 min-h-screen">
+      <div>
+        <CategoryNav
+          categories={categories}
+          activeCategory={filters.genre || "All Collections"}
+          onCategoryChange={handleCategoryChange}
+        />
+      </div>
+
       {/*result summary*/}
       <div className="py-4 text-gray-600 px-4">
         Showing
